@@ -19,9 +19,13 @@ uniform mat4 matrixView;
 
 in vec4 color;
 in vec2 texCoord0;
+in vec3 texCoordCubeMap;
 out vec4 outColor;
 in vec4 position;
 in vec3 normal;
+// cube maps
+uniform samplerCube textureCubeMap;
+uniform float reflectionPower;
 
 struct POINT
 {
@@ -62,7 +66,7 @@ uniform sampler2D texture0;
 void main(void) 
 {
   outColor = color;
-  outColor *= texture(texture0, texCoord0);
+ outColor = mix(outColor * texture(texture0, texCoord0.st), texture(textureCubeMap, texCoordCubeMap), reflectionPower);
   outColor += PointLight(lightPoint1);
   outColor += PointLight(lightPoint2);
 }
