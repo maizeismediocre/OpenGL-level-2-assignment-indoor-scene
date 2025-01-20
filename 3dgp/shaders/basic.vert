@@ -21,7 +21,6 @@ out vec4 color;
 out vec2 texCoord0;
 out vec4 position;
 out vec3 normal;
-out vec3 texCoordCubeMap;
 
 // Light declarations
 struct AMBIENT 
@@ -66,7 +65,6 @@ void main(void)
 
     normal = normalize(mat3(matrixModelView) * aNormal);
     texCoord0 = aTexCoord;
-    texCoordCubeMap = -inverse(mat3(matrixView)) * reflect(position.xyz, normal.xyz);
     // calculate light
     color = vec4(0, 0, 0, 1);
     color += AmbientLight(lightAmbient1);
