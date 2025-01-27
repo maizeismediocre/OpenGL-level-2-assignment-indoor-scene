@@ -216,6 +216,23 @@ bool init()
 	return true;
 	
 }
+void renderVase(mat4 matrixView, float time, float deltaTime)
+{
+	mat4 m;	
+	// set up materials - red 
+	program.sendUniform("materialAmbient", vec3(0.6f, 0.1f, 0.1f));
+	program.sendUniform("materialDiffuse", vec3(0.6f, 0.1f, 0.1f));
+	program.sendUniform("materialSpecular", vec3(1.0f, 1.0f, 1.0f));
+	program.sendUniform("shininess", 100.0f);
+	glBindTexture(GL_TEXTURE_2D, idTexNone);
+	// vase
+	m = matrixView;
+	m = translate(m, vec3(-2.0f, 3.0f, 0.0f));
+	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+
+	Vase.render(m);
+}
 
 void renderScene(mat4& matrixView, float time, float deltaTime)
 {
@@ -387,13 +404,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("materialSpecular", vec3(1.0f, 1.0f, 1.0f));
 	program.sendUniform("shininess", 100.0f);
 	glBindTexture(GL_TEXTURE_2D, idTexNone);
-	// vase
-	m = matrixView;
-	m = translate(m, vec3(-2.0f, 3.0f, 0.0f));
-	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
-	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
-
-	Vase.render(m);
+	
 	// figure 
 	m = matrixView;
 	m = translate(m, vec3(0.0f,3.33f, 0.0f));
@@ -508,7 +519,7 @@ void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
 
 	program.sendUniform("reflectionPower", 0.0);
 
-	for (int i = 0; i < 6; ++i)
+	for (int i = 0; i < 7; ++i)
 
 	{
 
@@ -552,7 +563,7 @@ void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
 
 
 		// render scene objects - all but the reflective one
-
+		
 		glActiveTexture(GL_TEXTURE0);
 
 		renderScene(matrixView2, time, deltaTime);
@@ -570,6 +581,10 @@ void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
 
 	// restore the matrixView, viewport and projection
 
+
+
+	program.sendUniform("matrixView", matrixView);
+
 	void onReshape(int w, int h);
 
 	onReshape(w, h);
@@ -583,7 +598,7 @@ void onRender()
 	float time = glutGet(GLUT_ELAPSED_TIME) * 0.001f;	// time since start in seconds
 	float deltaTime = time - prev;						// time since last frame
 	prev = time;										// framerate is 1/deltaTime
-
+	
 	// clear screen and buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -597,8 +612,15 @@ void onRender()
 		* matrixView;
 
 	// render the scene objects
-	renderScene(matrixView, time, deltaTime);
+	prepareCubeMap(-1.98f, 3.5f, 0.0f, time, deltaTime);
+	glActiveTexture(GL_TEXTURE0);
 
+	program.sendUniform("reflectionPower", 0.0);
+	
+	renderScene(matrixView, time, deltaTime);
+	glActiveTexture(GL_TEXTURE1);
+	program.sendUniform("reflectionPower", 0.5);
+	renderVase(matrixView, time, deltaTime);
 	// essential for double-buffering technique
 	glutSwapBuffers();
 

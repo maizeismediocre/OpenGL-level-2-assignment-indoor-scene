@@ -66,7 +66,7 @@ void main(void)
 
     normal = normalize(mat3(matrixModelView) * aNormal);
     texCoord0 = aTexCoord;
-    texCoordCubeMap = -inverse(mat3(matrixView)) * reflect(position.xyz, normal.xyz);
+    texCoordCubeMap = inverse(mat3(matrixView)) * mix(reflect(position.xyz, normal.xyz), normal.xyz, 0.2);
     // calculate light
     color = vec4(0, 0, 0, 1);
     color += AmbientLight(lightAmbient1);
