@@ -7,6 +7,7 @@
 // Include GLM core features
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "main.h"
 
 #pragma comment (lib, "glew32.lib")
 
@@ -60,6 +61,9 @@ GLuint idTexWood;
 GLuint idTexCloth;
 GLuint idTexNone;
 GLuint idTexCube;
+GLuint idTexShadowMap;
+// frame buffer objects
+GLuint idFBO;
 // The View Matrix
 mat4 matrixView;
 // GLSL programs
@@ -69,14 +73,15 @@ float maxspeed = 4.f;	// camera max speed
 float accel = 4.f;		// camera acceleration
 vec3 _acc(0), _vel(0);	// camera acceleration and velocity vectors
 float _fov = 60.f;		// field of view (zoom)
-bool isLamp1on = false;	// light on/off switch
+bool isLamp1on = false;	// light on/off switchc
 bool isLamp2on = false;	// light on/off switch
 bool init()
 {
+	
 	C3dglShader vertexShader;
 
 	C3dglShader fragmentShader;
-
+	
 
 	if (!vertexShader.create(GL_VERTEX_SHADER)) return false;
 
@@ -191,6 +196,70 @@ bool init()
 	// Send the texture info to the shaders
 	program.sendUniform("textureCubeMap", 1);
 	program.sendUniform("texture0", 0);
+	// Create shadow map texture
+
+	glActiveTexture(GL_TEXTURE7);
+
+	glGenTextures(1, &idTexShadowMap);
+
+	glBindTexture(GL_TEXTURE_2D, idTexShadowMap);
+
+
+	// Texture parameters - to get nice filtering & avoid artefact on the edges of the shadowmap
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+
+	// This will associate the texture with the depth component in the Z-buffer
+
+	GLint viewport[4];
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	int w = viewport[2], h = viewport[3];
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w * 2, h * 2, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+
+
+	// Send the texture info to the shaders
+
+	program.sendUniform("shadowMap", 7);
+	// Create a framebuffer object (FBO)
+	
+	glGenFramebuffers(1, &idFBO);
+
+	glBindFramebuffer(GL_FRAMEBUFFER_EXT, idFBO);
+
+
+	// Instruct openGL that we won't bind a color texture with the currently binded FBO
+
+	glDrawBuffer(GL_NONE);
+
+	glReadBuffer(GL_NONE);
+
+
+	// attach the texture to FBO depth attachment point
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, idTexShadowMap, 0);
+
+
+	// switch back to window-system-provided framebuffer
+
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+	// revert to texture unit 0
+
+	glActiveTexture(GL_TEXTURE0);
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = rotate(mat4(1), radians(12.f), vec3(1, 0, 0));
 	matrixView *= lookAt(
@@ -232,6 +301,107 @@ void renderVase(mat4 matrixView, float time, float deltaTime)
 	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
 
 	Vase.render(m);
+}
+void renderPyramid(mat4 matrixView, float time)
+{
+	// Set up materials for the pyramid - green
+	program.sendUniform("materialAmbient", vec3(0.1f, 0.6f, 0.1f));
+	program.sendUniform("materialDiffuse", vec3(0.1f, 0.6f, 0.1f));
+	program.sendUniform("materialSpecular", vec3(1.0f, 1.0f, 1.0f));
+	program.sendUniform("shininess", 100.0f);
+
+	// Get Attribute Locations
+	GLuint attribVertex = program.getAttribLocation("aVertex");
+	GLuint attribNormal = program.getAttribLocation("aNormal");
+
+	// Enable vertex attribute arrays
+	glEnableVertexAttribArray(attribVertex);
+	glEnableVertexAttribArray(attribNormal);
+
+	// Bind (activate) the vertex buffer and set the pointer to it
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glVertexAttribPointer(attribVertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	// Bind (activate) the normal buffer and set the pointer to it
+	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+	glVertexAttribPointer(attribNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	// Apply scaling transformation to the pyramid
+	mat4 m = matrixView;
+	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+	m = translate(m, vec3(0.0f, 67.0f, 0.0f));
+	m = rotate(m, radians(180.0f), vec3(0.0f, 0.0f, 1.0f));
+	m = rotate(m, time, vec3(0.0f, 1.0f, 0.0f));
+
+	// Send the model-view matrix to the shader
+	program.sendUniform("matrixModelView", m);
+
+	// Draw triangles – using index buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+
+	// Disable arrays
+	glDisableVertexAttribArray(attribVertex);
+	glDisableVertexAttribArray(attribNormal);
+}
+void renderBulb(mat4 matrixView, float time, float deltaTime)
+{
+	mat4 m;
+
+	// set up materials white bulb 1
+	if (isLamp1on == true)
+
+	{
+		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+	}
+	else
+	{
+		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+
+	}
+	// light bulb 1
+	m = matrixView;
+	m = translate(m, vec3(1.37f, 3.63f, 0.0f));
+	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+	program.sendUniform("matrixModelView", m);
+	glutSolidSphere(1, 32, 32);
+	if (isLamp2on)
+	{
+		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+
+	}
+	else
+	{
+		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+	}
+
+
+	// light bulb 2
+	m = matrixView;
+	m = translate(m, vec3(-1.37f, 3.63f, 0.0f));
+	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+	program.sendUniform("matrixModelView", m);
+	glutSolidSphere(1, 32, 32);
 }
 
 void renderScene(mat4& matrixView, float time, float deltaTime)
@@ -283,54 +453,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("materialDiffuse", vec3(0.1f, 0.6f, 0.1f));
 	program.sendUniform("materialSpecular", vec3(1.0f, 1.0f, 1.0f));
 	program.sendUniform("shininess", 100.0f);
-	// Get Attribute Locations
-
-	GLuint attribVertex = program.getAttribLocation("aVertex");
-
-	GLuint attribNormal = program.getAttribLocation("aNormal");
-
-
-	// Enable vertex attribute arrays
-
-	glEnableVertexAttribArray(attribVertex);
-
-	glEnableVertexAttribArray(attribNormal);
-
-
-	// Bind (activate) the vertex buffer and set the pointer to it
-
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-
-	glVertexAttribPointer(attribVertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-
-	// Bind (activate) the normal buffer and set the pointer to it
-
-	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-
-	glVertexAttribPointer(attribNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	
-	// Apply scaling transformation to the pyramid
-	m = matrixView;
-	m = scale(m, vec3(0.05f, 0.05f, 0.05f)); 
-	m = translate(m, vec3(0.0f, 67.0f, 0.0f));
-	m = rotate(m, radians(180.0f), vec3(0.0f, 0.0f, 1.0f));
-	m = rotate(m, time, vec3(0.0f, 1.0f, 0.0f));
-	// Send the model-view matrix to the shader
-	program.sendUniform("matrixModelView", m);
-
-	// Draw triangles – using index buffer
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
-
-
-	// Disable arrays
-
-	glDisableVertexAttribArray(attribVertex);
-
-	glDisableVertexAttribArray(attribNormal);
 
 	// set up materials brown
 	program.sendUniform("materialAmbient", vec3(0.6f, 0.3f, 0.1f));
@@ -434,60 +557,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = scale(m, vec3(0.01f, 0.01f, 0.01f));
 	
 	lamp.render(m);
-	// set up materials white bulb 1
-	if (isLamp1on == true)
-
-	{
-		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-	}
-	else
-	{
-		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-
-	}
-	// light bulb 1
-	m = matrixView;
-	m = translate(m, vec3(1.37f, 3.63f, 0.0f));
-	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
-	program.sendUniform("matrixModelView", m);
-	glutSolidSphere(1, 32, 32);
-	if (isLamp2on)
-	{
-		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-
-	}
-	else
-	{
-		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-	}
 	
-
-	// light bulb 2
-	m = matrixView;
-	m = translate(m, vec3(-1.37f, 3.63f, 0.0f));
-	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
-	program.sendUniform("matrixModelView", m);
-	glutSolidSphere(1, 32, 32);
 
 
 	program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
@@ -590,7 +660,112 @@ void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
 	onReshape(w, h);
 
 }
+void createShadowMap(mat4 lightTransform, float time, float deltaTime)
 
+{
+	glEnable(GL_CULL_FACE);
+	
+
+	glCullFace(GL_FRONT);
+
+
+	// Store the current viewport in a safe place
+
+	GLint viewport[4];
+
+	glGetIntegerv(GL_VIEWPORT, viewport);
+
+	int w = viewport[2], h = viewport[3];
+
+	
+
+	// setup the viewport to 2x2 the original and wide (120 degrees) FoV (Field of View)
+
+	glViewport(0, 0, w * 2, h * 2);
+
+	mat4 matrixProjection = perspective(radians(160.f), (float)w / (float)h, 0.5f, 50.0f);
+
+	program.sendUniform("matrixProjection", matrixProjection);
+
+
+	// prepare the camera
+
+	mat4 matrixView = lightTransform;
+
+
+	// send the View Matrix
+
+	program.sendUniform("matrixView", matrixView);
+
+
+	// Bind the Framebuffer
+
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, idFBO);
+
+	// OFF-SCREEN RENDERING FROM NOW!
+
+
+	// Clear previous frame values - depth buffer only!
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+
+	// Disable color rendering, we only want to write to the Z-Buffer (this is to speed-up)
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+
+	// Prepare and send the Shadow Matrix - this is matrix transform every coordinate x,y,z
+
+	// x = x* 0.5 + 0.5
+
+	// y = y* 0.5 + 0.5
+
+	// z = z* 0.5 + 0.5
+
+	// Moving from unit cube [-1,1] to [0,1]
+
+	const mat4 bias = {
+
+	{ 0.5, 0.0, 0.0, 0.0 },
+
+	{ 0.0, 0.5, 0.0, 0.0 },
+
+	{ 0.0, 0.0, 0.5, 0.0 },
+
+	{ 0.5, 0.5, 0.5, 1.0 }
+
+	};
+
+	program.sendUniform("matrixShadow", bias * matrixProjection * matrixView);
+
+
+	// Render all objects in the scene
+
+	renderScene(matrixView, time, deltaTime);
+	renderVase(matrixView, time, deltaTime);
+	glDisable(GL_CULL_FACE);
+	renderPyramid(matrixView, time);
+	glEnable(GL_CULL_FACE);
+	
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+
+	
+
+	
+	void onReshape(int w, int h);
+	onReshape(w, h);
+
+	
+}
+void clearShadowMap()
+{
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, idFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+}
 void onRender()
 {
 	// these variables control time & animation
@@ -599,6 +774,36 @@ void onRender()
 	float deltaTime = time - prev;						// time since last frame
 	prev = time;										// framerate is 1/deltaTime
 	
+	if(isLamp2on || isLamp1on)
+	{
+		if (isLamp2on)
+		{
+			createShadowMap(lookAt(
+				vec3(-1.37f, 4.00f, 0.0f), // coordinates of the source of the light
+				vec3(0.0f, 0.0f, 0.0f), // coordinates of a point within or behind the scene
+				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+				time, deltaTime);
+			glDisable(GL_CULL_FACE);
+		}
+
+		if (isLamp1on)
+		{
+			createShadowMap(lookAt(
+				vec3(1.37f, 4.00f, 0.0f), // coordinates of the source of the light
+				vec3(0.0f, 0.0f, 0.0f), // coordinates of a point within or behind the scene
+				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+				time, deltaTime);
+			glDisable(GL_CULL_FACE);
+		}
+	}
+	else
+	{
+		clearShadowMap();
+		glDisable(GL_CULL_FACE);
+	}
+	
+	
+
 	// clear screen and buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -612,21 +817,23 @@ void onRender()
 		* matrixView;
 
 	// render the scene objects
-	prepareCubeMap(-1.98f, 3.5f, 0.0f, time, deltaTime);
+	prepareCubeMap(-2.0f, 3.5f, 0.0f, time, deltaTime);
 	glActiveTexture(GL_TEXTURE0);
 
 	program.sendUniform("reflectionPower", 0.0);
-	
+	renderPyramid(matrixView, time);
 	renderScene(matrixView, time, deltaTime);
+	renderBulb(matrixView, time, deltaTime);
 	glActiveTexture(GL_TEXTURE1);
 	program.sendUniform("reflectionPower", 0.5);
 	renderVase(matrixView, time, deltaTime);
+	
 	// essential for double-buffering technique
 	glutSwapBuffers();
 
 	// proceed the animation
 	glutPostRedisplay();
-
+	
 }
 
 // called before window opened or resized - to setup the Projection Matrix
@@ -771,7 +978,7 @@ int main(int argc, char **argv)
 	glutMouseFunc(onMouse);
 	glutMotionFunc(onMotion);
 	glutMouseWheelFunc(onMouseWheel);
-
+	
 	C3dglLogger::log("Vendor: {}", (const char *)glGetString(GL_VENDOR));
 	C3dglLogger::log("Renderer: {}", (const char *)glGetString(GL_RENDERER));
 	C3dglLogger::log("Version: {}", (const char*)glGetString(GL_VERSION));

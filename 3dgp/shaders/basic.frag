@@ -24,6 +24,9 @@ in vec4 position;
 in vec3 normal;
 in vec3 texCoordCubeMap;
 
+in vec4 shadowCoord;
+uniform sampler2DShadow shadowMap;
+
 uniform samplerCube textureCubeMap;
 uniform float reflectionPower;
 
@@ -71,4 +74,10 @@ void main(void)
 texture(textureCubeMap, texCoordCubeMap), reflectionPower);
   outColor += PointLight(lightPoint1);
   outColor += PointLight(lightPoint2);
+  float shadow = 1.0;
+
+if (shadowCoord.w > 0) // if shadowCoord.w < 0 fragment is out of the Light POV
+
+  shadow = 0.5 + 0.5 * textureProj(shadowMap, shadowCoord);
+  outColor *= shadow;
 }
