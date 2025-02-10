@@ -146,7 +146,7 @@ bool init()
 	if (!teapot.load("models\\utah_teapot_ultrares.obj")) return false;
 	if (!Vase.load("models\\vase.obj")) return false;
 	if (!Figure.load("models\\figure.fbx")) return false;
-	if (!lamp.load("models\\lamp.obj")) return false;
+	if (!lamp.load("models\\lamp.3ds")) return false;
 	// load your textures here!
 	oak.load("models/oak.bmp", GL_RGBA);
 	if (!oak.getBits()) return false;
@@ -371,7 +371,7 @@ void renderBulb(mat4 matrixView, float time, float deltaTime)
 	}
 	// light bulb 1
 	m = matrixView;
-	m = translate(m, vec3(1.37f, 3.63f, 0.0f));
+	m = translate(m, vec3(1.0f, 4.95f, 0.0f));
 	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
 	program.sendUniform("matrixModelView", m);
 	glutSolidSphere(1, 32, 32);
@@ -398,7 +398,7 @@ void renderBulb(mat4 matrixView, float time, float deltaTime)
 
 	// light bulb 2
 	m = matrixView;
-	m = translate(m, vec3(-1.37f, 3.63f, 0.0f));
+	m = translate(m, vec3(-1.0f, 4.95f, 0.0f));
 	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
 	program.sendUniform("matrixModelView", m);
 	glutSolidSphere(1, 32, 32);
@@ -425,7 +425,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 
 	program.sendUniform("lightPoint1.diffuse", vec3(1.0, 1.0, 1.0));
 	
-	program.sendUniform("lightPoint1.position", vec3(1.37f, 3.63f, 0.0f));
+	program.sendUniform("lightPoint1.position", vec3(1.0f, 4.95f, 0.0f));
 	}
 	else
 	{
@@ -440,7 +440,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	{
 		program.sendUniform("lightPoint2.diffuse", vec3(1.0, 1.0, 1.0));
 		program.sendUniform("lightPoint2.specular", vec3(1.0, 1.0, 1.0));
-		program.sendUniform("lightPoint2.position", vec3(-1.37f, 3.63f, 0.0f));
+		program.sendUniform("lightPoint2.position", vec3(-1.0f, 4.95f, 0.0f));
 	}
 	else
 	{
@@ -544,7 +544,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	// lamp
 
 	m = matrixView;
-	m = translate(m, vec3(1.0f, 3.05f, 0.0f));
+	m = translate(m, vec3(1.0f, 6.0f, 0.0f));
 	m = rotate(m, radians(180.0f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.01f, 0.01f, 0.01f));
 
@@ -552,7 +552,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	
 	//lamp 2
 	m = matrixView;
-	m = translate(m, vec3(-1.0f, 3.05f, 0.0f));
+	m = translate(m, vec3(-1.0f, 6.0f, 0.0f));
 	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.01f, 0.01f, 0.01f));
 	
@@ -779,8 +779,8 @@ void onRender()
 		if (isLamp2on)
 		{
 			createShadowMap(lookAt(
-				vec3(-1.37f, 4.00f, 0.0f), // coordinates of the source of the light
-				vec3(0.0f, 0.0f, 0.0f), // coordinates of a point within or behind the scene
+				vec3(-1.0f, 4.95f, 0.0f), // coordinates of the source of the light
+				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
 				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
 				time, deltaTime);
 			glDisable(GL_CULL_FACE);
@@ -789,8 +789,8 @@ void onRender()
 		if (isLamp1on)
 		{
 			createShadowMap(lookAt(
-				vec3(1.37f, 4.00f, 0.0f), // coordinates of the source of the light
-				vec3(0.0f, 0.0f, 0.0f), // coordinates of a point within or behind the scene
+				vec3(1.0f, 4.95f, 0.0f), // coordinates of the source of the light
+				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
 				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
 				time, deltaTime);
 			glDisable(GL_CULL_FACE);
@@ -799,10 +799,10 @@ void onRender()
 	else
 	{
 		clearShadowMap();
-		glDisable(GL_CULL_FACE);
+		
 	}
 	
-	
+	glDisable(GL_CULL_FACE);
 
 	// clear screen and buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
