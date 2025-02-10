@@ -776,26 +776,38 @@ void onRender()
 	
 	if(isLamp2on || isLamp1on)
 	{
-		if (isLamp2on)
+		if (isLamp2on && !isLamp1on)
 		{
 			createShadowMap(lookAt(
 				vec3(-1.0f, 4.95f, 0.0f), // coordinates of the source of the light
 				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
 				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
 				time, deltaTime);
-			glDisable(GL_CULL_FACE);
+			
 		}
 
-		if (isLamp1on)
+		if (isLamp1on && !isLamp2on)
 		{
 			createShadowMap(lookAt(
 				vec3(1.0f, 4.95f, 0.0f), // coordinates of the source of the light
 				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
 				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
 				time, deltaTime);
-			glDisable(GL_CULL_FACE);
+			
+		}
+		// if they're both on create a map in the middle of the two 
+		if (isLamp1on && isLamp2on)
+		{
+			createShadowMap(lookAt(
+				vec3(0.01f, 4.95f, 0.0f), // coordinates of the source of the light
+				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
+				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+				time, deltaTime);
+			
 		}
 	}
+	
+	
 	else
 	{
 		clearShadowMap();
