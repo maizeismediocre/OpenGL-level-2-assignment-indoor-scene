@@ -34,7 +34,7 @@ vec3 _acc(0), _vel(0);	// camera acceleration and velocity vectors
 float _fov = 60.f;		// field of view (zoom)
 // Particle System Params
 
-const float PERIOD = 0.00075f;
+const float PERIOD = 0.01f;
 
 const float LIFETIME = 6;
 
@@ -106,7 +106,7 @@ bool init()
 
 	programParticle.sendUniform("initialPos", vec3(0.0, 0.58, 0.0));
 
-	programParticle.sendUniform("gravity", vec3(0.0, 0.1, 0.0));
+	programParticle.sendUniform("gravity", vec3(0.0, 1.0, 0.0));
 
 	programParticle.sendUniform("particleLifetime", LIFETIME);
 	
@@ -122,7 +122,7 @@ bool init()
 
 	{
 
-		float theta = (float)M_PI / 6.f * (float)rand() / (float)RAND_MAX;
+		float theta = (float)M_PI / 3.5f * (float)rand() / (float)RAND_MAX;
 
 		float phi = (float)M_PI * 2.f * (float)rand() / (float)RAND_MAX;
 

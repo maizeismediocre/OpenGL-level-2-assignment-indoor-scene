@@ -49,5 +49,6 @@ age = t / particleLifetime;
 vec4 position = matrixModelView * vec4(pos, 1.0);
 
 gl_Position = matrixProjection * position;
+gl_PointSize = mix(10, 100, age);
 
 }
