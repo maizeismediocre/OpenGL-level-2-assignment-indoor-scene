@@ -6,6 +6,10 @@ out vec4 outColor;
 
 void main()
 {
-	outColor = texture(texture0, gl_PointCoord);
+
+outColor = texture(texture0, gl_PointCoord);
+
 outColor.a *= 1 - age;
+outColor.a = 1 - outColor.r * outColor.g * outColor.b;
+
 }

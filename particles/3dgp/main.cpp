@@ -55,7 +55,7 @@ bool init()
 
 	// setup the point size
 	glEnable(GL_POINT_SPRITE);
-	glPointSize(5);
+	glPointSize(50);
 
 	// Initialise Shader - Basic
 	C3dglShader vertexShader;
@@ -106,7 +106,7 @@ bool init()
 
 	programParticle.sendUniform("initialPos", vec3(0.0, 0.58, 0.0));
 
-	programParticle.sendUniform("gravity", vec3(0.0, -0.2, 0.0));
+	programParticle.sendUniform("gravity", vec3(0.0, 0.1, 0.0));
 
 	programParticle.sendUniform("particleLifetime", LIFETIME);
 	
@@ -164,7 +164,7 @@ bool init()
 
 		GL_STATIC_DRAW);
 	// Setup the Texture
-	C3dglBitmap bm("models/water.bmp", GL_RGBA);
+	C3dglBitmap bm("models/smoke.bmp", GL_RGBA);
     glGenTextures(1, &idTexParticle);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, idTexParticle);
