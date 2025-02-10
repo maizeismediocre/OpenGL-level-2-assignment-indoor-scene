@@ -53,6 +53,10 @@ bool init()
 	glShadeModel(GL_SMOOTH);	// smooth shading mode is the default one; try GL_FLAT here!
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	// this is the default one; try GL_LINE!
 
+	// setup the point size
+	glEnable(GL_POINT_SPRITE);
+	glPointSize(5);
+
 	// Initialise Shader - Basic
 	C3dglShader vertexShader;
 	C3dglShader fragmentShader;
@@ -213,6 +217,10 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = matrixView;
 
 	programParticle.sendUniform("matrixModelView", m);
+	// particles
+	glDepthMask(GL_FALSE);				// disable depth buffer updates
+	glActiveTexture(GL_TEXTURE0);			// choose the active texture
+	glBindTexture(GL_TEXTURE_2D, idTexParticle);	// bind the texture
 
 
 	// render the buffer
@@ -238,6 +246,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	glDisableVertexAttribArray(aVelocity);
 
 	glDisableVertexAttribArray(aStartTime);
+	glDepthMask(GL_TRUE);		// don't forget to switch the depth test updates back on
 }
 
 void onRender()
