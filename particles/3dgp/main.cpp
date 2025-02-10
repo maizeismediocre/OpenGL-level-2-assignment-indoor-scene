@@ -9,7 +9,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #pragma comment (lib, "glew32.lib")
-
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 using namespace std;
 using namespace _3dgl;
 using namespace glm;
@@ -20,7 +22,8 @@ C3dglProgram programParticle;
 
 // texture ids
 GLuint idTexParticle;
-
+GLuint idBufferVelocity;
+GLuint idBufferStartTime;
 // The View Matrix
 mat4 matrixView;
 
@@ -29,9 +32,21 @@ float maxspeed = 4.f;	// camera max speed
 float accel = 4.f;		// camera acceleration
 vec3 _acc(0), _vel(0);	// camera acceleration and velocity vectors
 float _fov = 60.f;		// field of view (zoom)
+// Particle System Params
+
+const float PERIOD = 0.00075f;
+
+const float LIFETIME = 6;
+
+const int NPARTICLES = (int)(LIFETIME / PERIOD);
 
 bool init()
 {
+	// switch on: transparency/blending
+
+	glEnable(GL_BLEND);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// rendering states
 	glEnable(GL_DEPTH_TEST);	// depth test is necessary for most 3D scenes
 	glEnable(GL_NORMALIZE);		// normalization is needed by AssImp library models
@@ -83,8 +98,67 @@ bool init()
 	// directional
 	programBasic.sendUniform("lightDir.direction", vec3(1.0, 0.5, 1.0));
 	programBasic.sendUniform("lightDir.diffuse", vec3(1.0, 1.0, 1.0));
+	// Setup the particle system
 
+	programParticle.sendUniform("initialPos", vec3(0.0, 0.58, 0.0));
+
+	programParticle.sendUniform("gravity", vec3(0.0, -0.2, 0.0));
+
+	programParticle.sendUniform("particleLifetime", LIFETIME);
 	
+	// Prepare the particle buffers
+
+	std::vector<float> bufferVelocity;
+
+	std::vector<float> bufferStartTime;
+
+	float time = 0;
+
+	for (int i = 0; i < NPARTICLES; i++)
+
+	{
+
+		float theta = (float)M_PI / 6.f * (float)rand() / (float)RAND_MAX;
+
+		float phi = (float)M_PI * 2.f * (float)rand() / (float)RAND_MAX;
+
+		float x = sin(theta) * cos(phi);
+
+		float y = cos(theta);
+
+		float z = sin(theta) * sin(phi);
+
+		float v = 2 + 0.5f * (float)rand() / (float)RAND_MAX;
+
+
+		bufferVelocity.push_back(x * v);
+
+		bufferVelocity.push_back(y * v);
+
+		bufferVelocity.push_back(z * v);
+
+
+		bufferStartTime.push_back(time);
+
+		time += PERIOD;
+
+	}
+
+	glGenBuffers(1, &idBufferVelocity);
+
+	glBindBuffer(GL_ARRAY_BUFFER, idBufferVelocity);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * bufferVelocity.size(), &bufferVelocity[0],
+
+		GL_STATIC_DRAW);
+
+	glGenBuffers(1, &idBufferStartTime);
+
+	glBindBuffer(GL_ARRAY_BUFFER, idBufferStartTime);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * bufferStartTime.size(), &bufferStartTime[0],
+
+		GL_STATIC_DRAW);
 	// Setup the Texture
 	C3dglBitmap bm("models/water.bmp", GL_RGBA);
     glGenTextures(1, &idTexParticle);
@@ -112,6 +186,7 @@ bool init()
 	cout << "  Drag the mouse to look around" << endl;
 	cout << endl;
 
+
 	return true;
 }
 
@@ -130,6 +205,39 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 
 	///////////////////////////////////
 	// TO DO: RENDER THE PARTICLE SYSTEM
+	// RENDER THE PARTICLE SYSTEM
+
+	programParticle.use();
+
+
+	m = matrixView;
+
+	programParticle.sendUniform("matrixModelView", m);
+
+
+	// render the buffer
+
+	GLint aVelocity = programParticle.getAttribLocation("aVelocity");
+
+	GLint aStartTime = programParticle.getAttribLocation("aStartTime");
+
+	glEnableVertexAttribArray(aVelocity); // velocity
+
+	glEnableVertexAttribArray(aStartTime); // start time
+
+	glBindBuffer(GL_ARRAY_BUFFER, idBufferVelocity);
+
+	glVertexAttribPointer(aVelocity, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, idBufferStartTime);
+
+	glVertexAttribPointer(aStartTime, 1, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glDrawArrays(GL_POINTS, 0, NPARTICLES);
+
+	glDisableVertexAttribArray(aVelocity);
+
+	glDisableVertexAttribArray(aStartTime);
 }
 
 void onRender()
@@ -139,7 +247,7 @@ void onRender()
 	float time = glutGet(GLUT_ELAPSED_TIME) * 0.001f;	// time since start in seconds
 	float deltaTime = time - prev;						// time since last frame
 	prev = time;										// framerate is 1/deltaTime
-
+	programParticle.sendUniform("time", time);
 	// clear screen and buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
