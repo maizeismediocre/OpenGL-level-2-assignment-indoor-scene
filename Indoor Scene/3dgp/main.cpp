@@ -62,6 +62,7 @@ GLuint idTexCloth;
 GLuint idTexNone;
 GLuint idTexCube;
 GLuint idTexShadowMap;
+
 // frame buffer objects
 GLuint idFBO;
 // The View Matrix
