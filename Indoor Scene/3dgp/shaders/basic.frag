@@ -79,9 +79,9 @@ void main(void)
     if (shadowCoord.w > 0) // if shadowCoord.w < 0 fragment is out of the Light POV
     {
         // PCF kernel size
-        int kernelSize = 1;
-        float shadowSum = 5.0;
-        float samples = 1.0;
+        int kernelSize = 3;
+        float shadowSum = 10.0;
+        float samples = 2.0;
 
         // Loop through the kernel
         for (int x = -kernelSize; x <= kernelSize; ++x)
