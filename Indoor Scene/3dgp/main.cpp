@@ -303,14 +303,14 @@ void renderVase(mat4 matrixView, float time, float deltaTime)
 
 	Vase.render(m);
 }
-void renderPyramid(mat4 matrixView, float time)
+void renderPyramid(mat4 matrixView, float time, float deltaTime)
 {
 	// Set up materials for the pyramid - green
 	program.sendUniform("materialAmbient", vec3(0.1f, 0.6f, 0.1f));
 	program.sendUniform("materialDiffuse", vec3(0.1f, 0.6f, 0.1f));
 	program.sendUniform("materialSpecular", vec3(1.0f, 1.0f, 1.0f));
 	program.sendUniform("shininess", 100.0f);
-
+	glBindTexture(GL_TEXTURE_2D, idTexNone);
 	// Get Attribute Locations
 	GLuint attribVertex = program.getAttribLocation("aVertex");
 	GLuint attribNormal = program.getAttribLocation("aNormal");
@@ -348,7 +348,7 @@ void renderPyramid(mat4 matrixView, float time)
 void renderBulb(mat4 matrixView, float time, float deltaTime)
 {
 	mat4 m;
-
+	
 	// set up materials white bulb 1
 	if (isLamp1on == true)
 
@@ -639,7 +639,11 @@ void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
 
 		renderScene(matrixView2, time, deltaTime);
 
+		renderPyramid(matrixView2, time, deltaTime);
 
+		renderBulb(matrixView2, time, deltaTime);
+
+		
 		// send the image to the cube texture
 
 		glActiveTexture(GL_TEXTURE1);
@@ -746,7 +750,7 @@ void createShadowMap(mat4 lightTransform, float time, float deltaTime)
 	renderScene(matrixView, time, deltaTime);
 	renderVase(matrixView, time, deltaTime);
 	glDisable(GL_CULL_FACE);
-	renderPyramid(matrixView, time);
+	renderPyramid(matrixView, time,deltaTime);
 	glEnable(GL_CULL_FACE);
 	
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -830,13 +834,15 @@ void onRender()
 		* matrixView;
 
 	// render the scene objects
+
 	prepareCubeMap(-2.0f, 3.5f, 0.0f, time, deltaTime);
 	glActiveTexture(GL_TEXTURE0);
 
 	program.sendUniform("reflectionPower", 0.0);
-	renderPyramid(matrixView, time);
+	renderPyramid(matrixView, time, deltaTime);
 	renderScene(matrixView, time, deltaTime);
 	renderBulb(matrixView, time, deltaTime);
+	
 	glActiveTexture(GL_TEXTURE1);
 	program.sendUniform("reflectionPower", 0.5);
 	renderVase(matrixView, time, deltaTime);
