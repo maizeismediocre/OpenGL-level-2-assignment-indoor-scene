@@ -71,8 +71,8 @@ void main(void)
     texCoord0 = aTexCoord;
 
     mat4 matrixModel = inverse(matrixView) * matrixModelView;
-   shadowCoord = matrixShadow * matrixModel * vec4(aVertex + aNormal * 10, 1);
 
+  shadowCoord = matrixShadow * matrixModel * vec4(aVertex + aNormal * 0.1, 1);
     texCoordCubeMap = inverse(mat3(matrixView)) * mix(reflect(position.xyz, normal.xyz), normal.xyz, 0.2);
     // calculate light
     color = vec4(0, 0, 0, 1);

@@ -345,65 +345,7 @@ void renderPyramid(mat4 matrixView, float time, float deltaTime)
 	glDisableVertexAttribArray(attribVertex);
 	glDisableVertexAttribArray(attribNormal);
 }
-void renderBulb(mat4 matrixView, float time, float deltaTime)
-{
-	mat4 m;
-	
-	// set up materials white bulb 1
-	if (isLamp1on == true)
 
-	{
-		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-	}
-	else
-	{
-		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-
-	}
-	// light bulb 1
-	m = matrixView;
-	m = translate(m, vec3(1.0f, 4.95f, 0.0f));
-	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
-	program.sendUniform("matrixModelView", m);
-	glutSolidSphere(1, 32, 32);
-	if (isLamp2on)
-	{
-		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-
-	}
-	else
-	{
-		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
-		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
-		program.sendUniform("shininess", 100.0f);
-		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
-		glBindTexture(GL_TEXTURE_2D, idTexNone);
-	}
-
-
-	// light bulb 2
-	m = matrixView;
-	m = translate(m, vec3(-1.0f, 4.95f, 0.0f));
-	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
-	program.sendUniform("matrixModelView", m);
-	glutSolidSphere(1, 32, 32);
-}
 
 void renderScene(mat4& matrixView, float time, float deltaTime)
 {
@@ -559,9 +501,62 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	
 	lamp.render(m);
 	
+	// set up materials white bulb 1
+	if (isLamp1on == true)
+
+	{
+		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+	}
+	else
+	{
+		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+
+	}
+	// light bulb 1
+	m = matrixView;
+	m = translate(m, vec3(1.0f, 4.95f, 0.0f));
+	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+	program.sendUniform("matrixModelView", m);
+	glutSolidSphere(1, 32, 32);
+	if (isLamp2on)
+	{
+		program.sendUniform("materialAmbient", vec3(1.0f, 1.0f, 1.0f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(1.0, 1.0, 1.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+
+	}
+	else
+	{
+		program.sendUniform("materialAmbient", vec3(0.5f, 0.5f, 0.5f));
+		program.sendUniform("materialDiffuse", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("materialSpecular", vec3(0.0f, 0.0f, 0.0f));
+		program.sendUniform("shininess", 100.0f);
+		program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
+		glBindTexture(GL_TEXTURE_2D, idTexNone);
+	}
 
 
+	// light bulb 2
+	m = matrixView;
+	m = translate(m, vec3(-1.0f, 4.95f, 0.0f));
+	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
+	program.sendUniform("matrixModelView", m);
+	glutSolidSphere(1, 32, 32);
 	program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
+	
 
 }
 void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
@@ -641,7 +636,7 @@ void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
 
 		renderPyramid(matrixView2, time, deltaTime);
 
-		renderBulb(matrixView2, time, deltaTime);
+		
 
 		
 		// send the image to the cube texture
@@ -841,7 +836,7 @@ void onRender()
 	program.sendUniform("reflectionPower", 0.0);
 	renderPyramid(matrixView, time, deltaTime);
 	renderScene(matrixView, time, deltaTime);
-	renderBulb(matrixView, time, deltaTime);
+	
 	
 	glActiveTexture(GL_TEXTURE1);
 	program.sendUniform("reflectionPower", 0.5);

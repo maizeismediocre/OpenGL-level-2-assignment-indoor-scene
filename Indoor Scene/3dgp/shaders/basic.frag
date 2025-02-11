@@ -68,16 +68,34 @@ vec4 color = vec4(0, 0, 0, 0);
 uniform sampler2D texture0;
 void main(void) 
 {
-  outColor = color;
-  outColor = mix(outColor * texture(texture0, texCoord0.st),
+    outColor = color;
+    outColor = mix(outColor * texture(texture0, texCoord0.st),
+                   texture(textureCubeMap, texCoordCubeMap), reflectionPower);
+    outColor += PointLight(lightPoint1);
+    outColor += PointLight(lightPoint2);
 
-texture(textureCubeMap, texCoordCubeMap), reflectionPower);
-  outColor += PointLight(lightPoint1);
-  outColor += PointLight(lightPoint2);
-  float shadow = 1.0;
+    float shadow = 1.0;
 
-if (shadowCoord.w > 0) // if shadowCoord.w < 0 fragment is out of the Light POV
+    if (shadowCoord.w > 0) // if shadowCoord.w < 0 fragment is out of the Light POV
+    {
+        // PCF kernel size
+        int kernelSize = 3;
+        float shadowSum = 0.0;
+        float samples = 0.0;
 
-  shadow = 0.5 + 0.5 * textureProj(shadowMap, shadowCoord);
-  outColor *= shadow;
+        // Loop through the kernel
+        for (int x = -kernelSize; x <= kernelSize; ++x)
+        {
+            for (int y = -kernelSize; y <= kernelSize; ++y)
+            {
+                vec2 offset = vec2(x, y) * 0.001; 
+                shadowSum += textureProj(shadowMap, shadowCoord + vec4(offset, 0.0, 0.0));
+                samples += 1.0;
+            }
+        }
+
+        shadow = shadowSum / samples;
+    }
+
+    outColor *= shadow;
 }
