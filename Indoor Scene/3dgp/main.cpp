@@ -297,7 +297,7 @@ void renderVase(mat4 matrixView, float time, float deltaTime)
 	glBindTexture(GL_TEXTURE_2D, idTexNone);
 	// vase
 	m = matrixView;
-	m = translate(m, vec3(-2.0f, 3.0f, 0.0f));
+	m = translate(m, vec3(-2.0f, 3.042f, 0.0f));
 	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
 
