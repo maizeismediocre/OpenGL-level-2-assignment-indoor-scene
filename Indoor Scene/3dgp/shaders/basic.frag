@@ -76,12 +76,15 @@ void main(void)
 
     float shadow = 1.0;
 
-    if (shadowCoord.w > 0) // if shadowCoord.w < 0 fragment is out of the Light POV
+     if (shadowCoord.w > 0) // if shadowCoord.w < 0 fragment is out of the Light POV
     {
         // PCF kernel size
-        int kernelSize = 3;
-        float shadowSum = 10.0;
-        float samples = 2.0;
+        int kernelSize = 5;
+        float shadowSum = 0.0;
+        float samples = 0.0;
+
+        // Bias to prevent shadow acne
+        float bias = 0.001;
 
         // Loop through the kernel
         for (int x = -kernelSize; x <= kernelSize; ++x)
@@ -89,7 +92,7 @@ void main(void)
             for (int y = -kernelSize; y <= kernelSize; ++y)
             {
                 vec2 offset = vec2(x, y) * 0.001; 
-                shadowSum += textureProj(shadowMap, shadowCoord + vec4(offset, 0.0, 0.0));
+                shadowSum += textureProj(shadowMap, shadowCoord + vec4(offset, 0.0, 0.0) + vec4(0.0, 0.0, bias, 0.0));
                 samples += 1.0;
             }
         }
