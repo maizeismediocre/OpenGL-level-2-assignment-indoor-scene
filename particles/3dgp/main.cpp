@@ -164,7 +164,7 @@ bool init()
 
 		GL_STATIC_DRAW);
 	// Setup the Texture
-	C3dglBitmap bm("models/smoke.bmp", GL_RGBA);
+	C3dglBitmap bm("models/smoke.png", GL_RGBA);
     glGenTextures(1, &idTexParticle);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, idTexParticle);
