@@ -42,11 +42,7 @@ const int NPARTICLES = (int)(LIFETIME / PERIOD);
 
 bool init()
 {
-	// switch on: transparency/blending
-
-	glEnable(GL_BLEND);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	// rendering states
 	glEnable(GL_DEPTH_TEST);	// depth test is necessary for most 3D scenes
 	glEnable(GL_NORMALIZE);		// normalization is needed by AssImp library models
@@ -164,12 +160,14 @@ bool init()
 
 		GL_STATIC_DRAW);
 	// Setup the Texture
-	C3dglBitmap bm("models/smoke.png", GL_RGBA);
+	C3dglBitmap particle;
+	particle.load("models/smoke.png", GL_RGBA);
+	if (!particle.getBits())
     glGenTextures(1, &idTexParticle);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, idTexParticle);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.getWidth(), bm.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bm.getBits());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, particle.getWidth(), particle.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, particle.getBits());
 
 	programParticle.sendUniform("texture0", 0);
 
@@ -198,7 +196,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 {
 	mat4 m;
 
-	// teapot
+	// Render the teapot (opaque object)
 	programBasic.use();
 	programBasic.sendUniform("materialAmbient", vec3(0.8, 0.2, 0.2));
 	programBasic.sendUniform("materialDiffuse", vec3(0.8, 0.2, 0.2));
@@ -207,46 +205,45 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	programBasic.sendUniform("matrixModelView", m);
 	glutSolidTeapot(0.5);
 
-	///////////////////////////////////
-	// TO DO: RENDER THE PARTICLE SYSTEM
-	// RENDER THE PARTICLE SYSTEM
-
+	// Render the particle system
 	programParticle.use();
-
-
 	m = matrixView;
-
 	programParticle.sendUniform("matrixModelView", m);
-	// particles
-	glDepthMask(GL_FALSE);				// disable depth buffer updates
-	glActiveTexture(GL_TEXTURE0);			// choose the active texture
-	glBindTexture(GL_TEXTURE_2D, idTexParticle);	// bind the texture
 
+	// Enable blending for particles
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// render the buffer
+	// Disable depth buffer updates for particles
+	glDepthMask(GL_FALSE);
 
+	// Bind the particle texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, idTexParticle);
+
+	// Render the particle buffers
 	GLint aVelocity = programParticle.getAttribLocation("aVelocity");
-
 	GLint aStartTime = programParticle.getAttribLocation("aStartTime");
 
 	glEnableVertexAttribArray(aVelocity); // velocity
-
 	glEnableVertexAttribArray(aStartTime); // start time
 
 	glBindBuffer(GL_ARRAY_BUFFER, idBufferVelocity);
-
 	glVertexAttribPointer(aVelocity, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, idBufferStartTime);
-
 	glVertexAttribPointer(aStartTime, 1, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glDrawArrays(GL_POINTS, 0, NPARTICLES);
 
 	glDisableVertexAttribArray(aVelocity);
-
 	glDisableVertexAttribArray(aStartTime);
-	glDepthMask(GL_TRUE);		// don't forget to switch the depth test updates back on
+
+	// Restore depth buffer updates
+	glDepthMask(GL_TRUE);
+
+	// Disable blending
+	glDisable(GL_BLEND);
 }
 
 void onRender()
