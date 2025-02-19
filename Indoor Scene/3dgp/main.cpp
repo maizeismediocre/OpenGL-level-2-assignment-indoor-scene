@@ -285,6 +285,7 @@ bool init()
 	
 	return true;
 	
+	
 }
 void renderVase(mat4 matrixView, float time, float deltaTime)
 {
@@ -297,7 +298,7 @@ void renderVase(mat4 matrixView, float time, float deltaTime)
 	glBindTexture(GL_TEXTURE_2D, idTexNone);
 	// vase
 	m = matrixView;
-	m = translate(m, vec3(-2.0f, 3.04f, 0.0f));
+	m = translate(m, vec3(-2.0f, 3.0421f, 0.0f));
 	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
 
@@ -330,7 +331,7 @@ void renderPyramid(mat4 matrixView, float time, float deltaTime)
 	// Apply scaling transformation to the pyramid
 	mat4 m = matrixView;
 	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
-	m = translate(m, vec3(0.0f, 67.0f, 0.0f));
+	m = translate(m, vec3(0.0f, 67.84f, 0.0f));
 	m = rotate(m, radians(180.0f), vec3(0.0f, 0.0f, 1.0f));
 	m = rotate(m, time, vec3(0.0f, 1.0f, 0.0f));
 
@@ -376,7 +377,9 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 		
 		program.sendUniform("lightPoint1.position", vec3(1.37f, 3.63f, 0.0f));
 
-}
+    }
+	program.sendUniform("isLamp1on", isLamp1on);
+	
 
 	// point light 2 (specular)
 	if (isLamp2on == true)
@@ -391,6 +394,8 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 		program.sendUniform("lightPoint2.specular", vec3(0.0, 0.0, 0.0));
 		program.sendUniform("lightPoint2.position", vec3(-1.37f, 3.63f, 0.0f));
 	}
+	
+	program.sendUniform("isLamp2on", isLamp2on);
 	// set up materials green
 	program.sendUniform("materialAmbient", vec3(0.1f, 0.6f, 0.1f));
 	program.sendUniform("materialDiffuse", vec3(0.1f, 0.6f, 0.1f));
@@ -459,7 +464,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	glBindTexture(GL_TEXTURE_2D, idTexNone);
 	// teapot
 	m = matrixView;
-	m = translate(m, vec3(2.0f, 3.0f, 0.0f));
+	m = translate(m, vec3(2.0f, 3.029f, 0.0f));
 	m = rotate(m, radians(120.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.5f, 0.5f, 0.5f));
 	program.sendUniform("matrixView", matrixView);
@@ -473,10 +478,12 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	
 	// figure 
 	m = matrixView;
-	m = translate(m, vec3(0.0f,3.33f, 0.0f));
+	m = translate(m, vec3(0.0f,3.391f, 0.0f));
 	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.05f, 0.05f, 0.05f));
 	program.sendUniform("matrixView", matrixView);
+	
+	m = rotate(m, time, vec3(0.0f, 1.0f, 0.0f));
 	Figure.render(m);
 	//set up materials yellow 
 	program.sendUniform("materialAmbient", vec3(0.6f, 0.6f, 0.1f));
