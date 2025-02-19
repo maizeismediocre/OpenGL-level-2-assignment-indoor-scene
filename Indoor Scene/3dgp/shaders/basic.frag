@@ -64,7 +64,7 @@ void main(void) {
 
     if (shadowCoord.w > 0) { // if shadowCoord.w < 0 fragment is out of the Light POV
         // Determine kernel size based on light states
-        int kernelSize = (isLamp1on && isLamp2on) ? 3 : 7; 
+        int kernelSize = (isLamp1on && isLamp2on) ? 3 : 5; 
 
         float shadowSum = 0.0;
         float samples = 0.0;

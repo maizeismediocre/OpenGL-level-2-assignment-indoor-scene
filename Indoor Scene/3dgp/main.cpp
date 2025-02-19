@@ -375,7 +375,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	{
 		program.sendUniform("lightPoint1.diffuse", vec3(0.0, 0.0, 0.0));
 		
-		program.sendUniform("lightPoint1.position", vec3(1.37f, 3.63f, 0.0f));
+		
 
     }
 	program.sendUniform("isLamp1on", isLamp1on);
@@ -392,7 +392,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	{
 		program.sendUniform("lightPoint2.diffuse", vec3(0.0, 0.0, 0.0));
 		program.sendUniform("lightPoint2.specular", vec3(0.0, 0.0, 0.0));
-		program.sendUniform("lightPoint2.position", vec3(-1.37f, 3.63f, 0.0f));
+		
 	}
 	
 	program.sendUniform("isLamp2on", isLamp2on);
@@ -781,36 +781,34 @@ void onRender()
 	float deltaTime = time - prev;						// time since last frame
 	prev = time;										// framerate is 1/deltaTime
 	
-	if(isLamp2on || isLamp1on)
+	if (isLamp2on || isLamp1on)
 	{
 		if (isLamp2on && !isLamp1on)
 		{
 			createShadowMap(lookAt(
 				vec3(-1.0f, 4.95f, 0.0f), // coordinates of the source of the light
-				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
-				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+				vec3(-1.0f, 0.0f, 0.0f),  // directly below the light source
+				vec3(0.0f, 0.0f, -1.0f)), // a reasonable "Up" vector
 				time, deltaTime);
-			
 		}
 
 		if (isLamp1on && !isLamp2on)
 		{
 			createShadowMap(lookAt(
 				vec3(1.0f, 4.95f, 0.0f), // coordinates of the source of the light
-				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
-				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+				vec3(1.0f, 0.0f, 0.0f),  // directly below the light source
+				vec3(0.0f, 0.0f, -1.0f)), // a reasonable "Up" vector
 				time, deltaTime);
-			
 		}
+
 		// if they're both on create a map in the middle of the two 
 		if (isLamp1on && isLamp2on)
 		{
 			createShadowMap(lookAt(
 				vec3(0.01f, 4.95f, 0.0f), // coordinates of the source of the light
-				vec3(0.0f, 0.00f, 0.0f), // coordinates of a point within or behind the scene
-				vec3(0.0f, 1.0f, 0.0f)), // a reasonable "Up" vector
+				vec3(0.01f, 0.0f, 0.0f),  // directly below the light source
+				vec3(0.0f, 0.0f, -1.0f)), // a reasonable "Up" vector
 				time, deltaTime);
-			
 		}
 	}
 	
