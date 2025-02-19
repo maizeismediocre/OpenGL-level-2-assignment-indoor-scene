@@ -566,107 +566,82 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	
 
 }
-void prepareCubeMap(float x, float y, float z, float time, float deltaTime)
-
+void onReshape(int w, int h)
 {
+	float ratio = w * 1.0f / h;      // we hope that h is not zero
+	glViewport(0, 0, w, h);
+	mat4 matrixProjection = perspective(radians(_fov), ratio, 0.02f, 1000.f);
 
-	// Store the current viewport in a safe place
-
+	// Setup the Projection Matrix
+	program.sendUniform("matrixProjection", matrixProjection);
+}
+void prepareCubeMap(float x, float y, float z, float time, float deltaTime) {
+	// Store the complete current viewport state
 	GLint viewport[4];
-
 	glGetIntegerv(GL_VIEWPORT, viewport);
 
-	int w = viewport[2];
+	// Store these for later use
+	int originalX = viewport[0];
+	int originalY = viewport[1];
+	int originalWidth = viewport[2];
+	int originalHeight = viewport[3];
 
-	int h = viewport[3];
-
-
-	// setup the viewport to 256x256, 90 degrees FoV (Field of View)
-
+	// setup the viewport to 256x256, 90 degrees FoV
 	glViewport(0, 0, 256, 256);
-
 	program.sendUniform("matrixProjection", perspective(radians(90.f), 1.0f, 0.02f, 1000.0f));
 
+	// Make sure we're in modelview mode
+	glMatrixMode(GL_MODELVIEW);
 
 	// render environment 6 times
-
 	program.sendUniform("reflectionPower", 0.0);
 
-	for (int i = 0; i < 7; ++i)
-
-	{
-
+	for (int i = 0; i < 6; ++i) {
 		// clear background
-
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 		// setup the camera
-
 		const GLfloat ROTATION[6][6] =
-
 		{ // at up
-
-		{ 1.0, 0.0, 0.0, 0.0, -1.0, 0.0 }, // pos x
-
-		{ -1.0, 0.0, 0.0, 0.0, -1.0, 0.0 }, // neg x
-
-		{ 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 }, // pos y
-
-		{ 0.0, -1.0, 0.0, 0.0, 0.0, -1.0 }, // neg y
-
-		{ 0.0, 0.0, 1.0, 0.0, -1.0, 0.0 }, // poz z
-
-		{ 0.0, 0.0, -1.0, 0.0, -1.0, 0.0 } // neg z
-
+			{ 1.0, 0.0, 0.0, 0.0, -1.0, 0.0 }, // pos x
+			{ -1.0, 0.0, 0.0, 0.0, -1.0, 0.0 }, // neg x
+			{ 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 }, // pos y
+			{ 0.0, -1.0, 0.0, 0.0, 0.0, -1.0 }, // neg y
+			{ 0.0, 0.0, 1.0, 0.0, -1.0, 0.0 }, // pos z
+			{ 0.0, 0.0, -1.0, 0.0, -1.0, 0.0 } // neg z
 		};
 
 		mat4 matrixView2 = lookAt(
-
 			vec3(x, y, z),
-
 			vec3(x + ROTATION[i][0], y + ROTATION[i][1], z + ROTATION[i][2]),
-
-			vec3(ROTATION[i][3], ROTATION[i][4], ROTATION[i][5]));
-
+			vec3(ROTATION[i][3], ROTATION[i][4], ROTATION[i][5])
+		);
 
 		// send the View Matrix
-
-		program.sendUniform("matrixView", matrixView);
-
-
-		// render scene objects - all but the reflective one
+		program.sendUniform("matrixView", matrixView2);
 		
+		// render scene objects - all but the reflective one
 		glActiveTexture(GL_TEXTURE0);
-
 		renderScene(matrixView2, time, deltaTime);
-
 		renderPyramid(matrixView2, time, deltaTime);
 
-		
-
-		
 		// send the image to the cube texture
-
 		glActiveTexture(GL_TEXTURE1);
-
 		glBindTexture(GL_TEXTURE_CUBE_MAP, idTexCube);
-
 		glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8, 0, 0, 256, 256, 0);
-
 	}
 
-	// restore the matrixView, viewport and projection
+	// Explicitly restore the original viewport state
+	glViewport(originalX, originalY, originalWidth, originalHeight);
 
+	// Restore the projection matrix through onReshape
+	onReshape(originalWidth, originalHeight);
 
-
+	// Restore the original view matrix
 	program.sendUniform("matrixView", matrixView);
-
-	void onReshape(int w, int h);
-
-	onReshape(w, h);
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
+
 void createShadowMap(mat4 lightTransform, float time, float deltaTime)
 
 {
@@ -762,7 +737,7 @@ void createShadowMap(mat4 lightTransform, float time, float deltaTime)
 	
 
 	
-	void onReshape(int w, int h);
+	
 	onReshape(w, h);
 
 	
@@ -835,7 +810,7 @@ void onRender()
 
 	// render the scene objects
 
-	prepareCubeMap(-2.0f, 3.5f, 0.0f, time, deltaTime);
+	prepareCubeMap(-2.0f, 3.5021f, 0.0f, time, deltaTime);
 	glActiveTexture(GL_TEXTURE0);
 
 	program.sendUniform("reflectionPower", 0.0);
@@ -856,15 +831,7 @@ void onRender()
 }
 
 // called before window opened or resized - to setup the Projection Matrix
-void onReshape(int w, int h)
-{
-	float ratio = w * 1.0f / h;      // we hope that h is not zero
-	glViewport(0, 0, w, h);
-	mat4 matrixProjection = perspective(radians(_fov), ratio, 0.02f, 1000.f);
 
-	// Setup the Projection Matrix
-	program.sendUniform("matrixProjection", matrixProjection);
-}
 
 // Handle WASDQE keys
 void onKeyDown(unsigned char key, int x, int y)
