@@ -54,7 +54,7 @@ C3dglModel teapot;
 C3dglModel Vase;
 C3dglModel Figure; 
 C3dglModel lamp;	
-// textrue
+// textures
 C3dglBitmap bm;
 C3dglBitmap oak;
 GLuint idTexWood;
@@ -575,7 +575,9 @@ void onReshape(int w, int h)
 	// Setup the Projection Matrix
 	program.sendUniform("matrixProjection", matrixProjection);
 }
+
 void prepareCubeMap(float x, float y, float z, float time, float deltaTime) {
+	//Modified version of the one given in the recipe because the one in the recipe had an issue where the viewport wasn't restoring properply 
 	// Store the complete current viewport state
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -639,7 +641,7 @@ void prepareCubeMap(float x, float y, float z, float time, float deltaTime) {
 
 	// Restore the original view matrix
 	program.sendUniform("matrixView", matrixView);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 }
 
 void createShadowMap(mat4 lightTransform, float time, float deltaTime)
@@ -744,6 +746,7 @@ void createShadowMap(mat4 lightTransform, float time, float deltaTime)
 }
 void clearShadowMap()
 {
+	// used when the lights are off
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, idFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -795,7 +798,9 @@ void onRender()
 	}
 	
 	glDisable(GL_CULL_FACE);
-
+	//prepare cubemap
+	prepareCubeMap(-2.0f, 3.5021f, 0.0f, time, deltaTime);
+	glActiveTexture(GL_TEXTURE0);
 	// clear screen and buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -810,8 +815,7 @@ void onRender()
 
 	// render the scene objects
 
-	prepareCubeMap(-2.0f, 3.5021f, 0.0f, time, deltaTime);
-	glActiveTexture(GL_TEXTURE0);
+	
 
 	program.sendUniform("reflectionPower", 0.0);
 	renderPyramid(matrixView, time, deltaTime);
