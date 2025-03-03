@@ -54,6 +54,9 @@ C3dglModel teapot;
 C3dglModel Vase;
 C3dglModel Figure; 
 C3dglModel lamp;	
+C3dglModel knight;
+//animations
+C3dglModel dance;
 // textures
 C3dglBitmap bm;
 C3dglBitmap oak;
@@ -148,6 +151,11 @@ bool init()
 	if (!Vase.load("models\\vase.obj")) return false;
 	if (!Figure.load("models\\figure.fbx")) return false;
 	if (!lamp.load("models\\lamp.3ds")) return false;
+	//animations
+	dance.load("models\\dance.fbx");
+	knight.load("models\\knight.fbx");
+	knight.loadMaterials("models\\knight.fbx");
+	knight.loadAnimations(&dance);
 	// load your textures here!
 	oak.load("models/oak.bmp", GL_RGBA);
 	if (!oak.getBits()) return false;
@@ -563,7 +571,17 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("matrixModelView", m);
 	glutSolidSphere(1, 32, 32);
 	program.sendUniform("lightAmbient2.color", vec3(0.0, 0.0, 0.0));
-	
+	// calculate and send bone transforms
+	std::vector<mat4> transforms;
+	knight.getAnimData(0, time, transforms);
+	program.sendUniform("bones", &transforms[0], transforms.size());
+
+	m = matrixView;
+	m = translate(m, vec3(1.0f, 3.035f, 0.0f));
+	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	m = scale(m, vec3(0.001f, 0.001f, 0.001f));
+	knight.render(m);
+
 
 }
 void onReshape(int w, int h)
