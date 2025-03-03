@@ -55,8 +55,10 @@ C3dglModel Vase;
 C3dglModel Figure; 
 C3dglModel lamp;	
 C3dglModel knight;
+C3dglModel knight2;
 //animations
 C3dglModel dance;
+C3dglModel dance2;
 // textures
 C3dglBitmap bm;
 C3dglBitmap oak;
@@ -156,6 +158,10 @@ bool init()
 	knight.load("models\\knight.fbx");
 	knight.loadMaterials("models\\knight.fbx");
 	knight.loadAnimations(&dance);
+	dance2.load("models\\dance2.fbx");
+	knight2.load("models\\knight2.fbx");
+	knight2.loadMaterials("models\\knight2.fbx");
+	knight2.loadAnimations(&dance2);
 	// load your textures here!
 	oak.load("models/oak.bmp", GL_RGBA);
 	if (!oak.getBits()) return false;
@@ -582,6 +588,15 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = scale(m, vec3(0.001f, 0.001f, 0.001f));
 	knight.render(m);
 
+	// calculate and send bone transforms
+	std::vector<mat4> transforms2;
+	knight2.getAnimData(0, time, transforms2);
+	program.sendUniform("bones", &transforms2[0], transforms2.size());
+	m = matrixView;
+	m = translate(m, vec3(-1.0f, 3.035f, 0.0f));
+	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	m = scale(m, vec3(0.001f, 0.001f, 0.001f));
+	knight2.render(m);
 
 }
 void onReshape(int w, int h)
