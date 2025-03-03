@@ -583,7 +583,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("bones", &transforms[0], transforms.size());
 
 	m = matrixView;
-	m = translate(m, vec3(1.0f, 3.035f, 0.0f));
+	m = translate(m, vec3(1.5f, 3.035f, 0.0f));
 	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.001f, 0.001f, 0.001f));
 	knight.render(m);
@@ -593,7 +593,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	knight2.getAnimData(0, time, transforms2);
 	program.sendUniform("bones", &transforms2[0], transforms2.size());
 	m = matrixView;
-	m = translate(m, vec3(-1.0f, 3.035f, 0.0f));
+	m = translate(m, vec3(-1.5f, 3.035f, 0.0f));
 	m = rotate(m, radians(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.001f, 0.001f, 0.001f));
 	knight2.render(m);
